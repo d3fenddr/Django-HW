@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}Статьи — Habr Lite{% endblock %}
+{% block content %}
+
+<div class="mb-3">
+  <a class="btn btn-sm {% if not active_category %}btn-primary{% else %}btn-outline-primary{% endif %}"
+     href="{% url 'articles:list' %}">Все</a>
+  {% for c in categories %}
+    <a class="btn btn-sm {% if active_category == c.slug %}btn-primary{% else %}btn-outline-primary{% endif %}"
+       href="?category={{ c.slug }}">{{ c.name }}</a>
+  {% endfor %}
+</div>
+
+<div class="row g-4">
+  {% for a in articles %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card article-card h-100">
+      {% if a.image %}
+        <img src="{{ a.image.url }}" class="card-img-top" alt="{{ a.title }}">
+      {% endif %}
+      <div class="card-body d-flex flex-column">
+        <div class="small text-muted mb-1">
+          {{ a.author.username }} • {{ a.category }} • {{ a.created_at|date:'d.m.Y' }}
+        </div>
+        <h5 class="card-title">{{ a.title }}</h5>
+        <p class="card-text">{{ a.excerpt }}</p>
+        <div class="mt-auto">
+          <a href="{{ a.get_absolute_url }}" class="btn btn-primary btn-sm">Читать далее</a>
+          <span class="ms-3">👍 {{ a.likes_count }} | 👎 {{ a.dislikes_count }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+    <p>Пока нет статей.</p>
+  {% endfor %}
+</div>
+
+<nav class="mt-4">
+  <ul class="pagination">
+    {% if articles.has_previous %}
+      <li class="page-item"><a class="page-link" href="?page={{ articles.previous_page_number }}{% if active_category %}&category={{active_category}}{% endif %}">Назад</a></li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">Назад</span></li>
+    {% endif %}
+    <li class="page-item disabled"><span class="page-link">Стр. {{ articles.number }} из {{ articles.paginator.num_pages }}</span></li>
+    {% if articles.has_next %}
+      <li class="page-item"><a class="page-link" href="?page={{ articles.next_page_number }}{% if active_category %}&category={{active_category}}{% endif %}">Вперёд</a></li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">Вперёд</span></li>
+    {% endif %}
+  </ul>
+</nav>
+{% endblock %}

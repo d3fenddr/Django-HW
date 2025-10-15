@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}{{ article.title }} — Habr Lite{% endblock %}
+{% block content %}
+<article class="mb-4">
+  <div class="small text-muted mb-2">
+    Автор: {{ article.author.username }} • Категория: {{ article.category }} • {{ article.created_at|date:'d.m.Y' }}
+  </div>
+  <h1 class="mb-3">{{ article.title }}</h1>
+  {% if article.image %}
+    <img src="{{ article.image.url }}" alt="{{ article.title }}" class="img-fluid mb-3">
+  {% endif %}
+  <div class="lead" style="white-space:pre-line">{{ article.body }}</div>
+</article>
+
+<div class="d-flex align-items-center gap-2">
+  <form method="post" action="{% url 'articles:react' article.slug %}">
+    {% csrf_token %}
+    <input type="hidden" name="value" value="like">
+    <button class="btn {% if user_reaction and user_reaction.value == 1 %}btn-success{% else %}btn-outline-success{% endif %}">
+      👍 {{ article.likes_count }}
+    </button>
+  </form>
+  <form method="post" action="{% url 'articles:react' article.slug %}">
+    {% csrf_token %}
+    <input type="hidden" name="value" value="dislike">
+    <button class="btn {% if user_reaction and user_reaction.value == -1 %}btn-danger{% else %}btn-outline-danger{% endif %}">
+      👎 {{ article.dislikes_count }}
+    </button>
+  </form>
+
+  {% if not request.user.is_authenticated %}
+    <span class="ms-2 text-muted small">Чтобы голосовать — <a href="/admin/login/">войдите</a>.</span>
+  {% endif %}
+</div>
+{% endblock %}
