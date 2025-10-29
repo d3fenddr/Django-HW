@@ -11,12 +11,21 @@
 <nav class="navbar navbar-expand-lg bg-body-tertiary mb-4">
   <div class="container">
     <a class="navbar-brand" href="{% url 'articles:list' %}">Habr Lite</a>
-    <div class="ms-auto">
+    <div class="d-flex gap-2">
+      <a class="btn btn-link" href="{% url 'articles:list' %}">Статьи</a>
+      <a class="btn btn-link" href="{% url 'articles:popular' %}">Популярное</a>
+      <a class="btn btn-link" href="{% url 'articles:categories' %}">Категории</a>
+      <a class="btn btn-link" href="{% url 'articles:authors' %}">Авторы</a>
+    </div>
+    <div class="ms-auto d-flex gap-2 align-items-center">
       {% if request.user.is_authenticated %}
-        <span class="me-2">Привет, {{ request.user.username }}!</span>
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'articles:bookmarks' %}">Закладки</a>
+        <span class="me-2">{{ request.user.username }}</span>
         <a class="btn btn-outline-primary" href="{% url 'articles:create' %}">Новая статья</a>
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'logout' %}">Выйти</a>
       {% else %}
-        <a class="btn btn-outline-secondary btn-sm" href="/admin/login/">Войти</a>
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'login' %}">Войти</a>
+        <a class="btn btn-primary btn-sm" href="{% url 'articles:signup' %}">Регистрация</a>
       {% endif %}
     </div>
   </div>

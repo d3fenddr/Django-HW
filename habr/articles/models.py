@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
 from django.urls import reverse
+from django.db.models import Avg, Count
 
 # Use Cloudinary if available, otherwise local ImageField
 try:
@@ -42,6 +43,13 @@ class Article(models.Model):
     # generated from body; not editable in forms/admin
     excerpt = models.TextField('Excerpt', blank=True, editable=False)
     body = models.TextField('Body')
+    STATUS_PENDING = 'pending'
+    STATUS_PUBLISHED = 'published'
+    STATUS_CHOICES = (
+        (STATUS_PENDING, 'Pending approval'),
+        (STATUS_PUBLISHED, 'Published'),
+    )
+    status = models.CharField('Status', max_length=12, choices=STATUS_CHOICES, default=STATUS_PENDING)
     created_at = models.DateTimeField('Created at', auto_now_add=True)
     updated_at = models.DateTimeField('Updated at', auto_now=True)
 
@@ -77,6 +85,16 @@ class Article(models.Model):
     def dislikes_count(self):
         return self.reactions.filter(value=-1).count()
 
+    @property
+    def rating_avg(self):
+        result = self.ratings.aggregate(avg=Avg('score'))
+        return float(result['avg'] or 0.0)
+
+    @property
+    def rating_count(self):
+        result = self.ratings.aggregate(cnt=Count('id'))
+        return int(result['cnt'] or 0)
+
     def __str__(self):
         return self.title
 
@@ -102,3 +120,41 @@ class Reaction(models.Model):
 
     def __str__(self):
         return f'{self.user} -> {self.article} [{self.value}]'
+
+
+class Rating(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='article_ratings', verbose_name='User'
+    )
+    article = models.ForeignKey(
+        Article, on_delete=models.CASCADE, related_name='ratings', verbose_name='Article'
+    )
+    score = models.PositiveSmallIntegerField('Score', choices=[(i, str(i)) for i in range(1, 6)])
+    created_at = models.DateTimeField('Created at', auto_now_add=True)
+    updated_at = models.DateTimeField('Updated at', auto_now=True)
+
+    class Meta:
+        unique_together = (('user', 'article'),)
+        verbose_name = 'Rating'
+        verbose_name_plural = 'Ratings'
+
+    def __str__(self):
+        return f'{self.user} rated {self.article} {self.score}'
+
+
+class Bookmark(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='bookmarks', verbose_name='User'
+    )
+    article = models.ForeignKey(
+        Article, on_delete=models.CASCADE, related_name='bookmarks', verbose_name='Article'
+    )
+    created_at = models.DateTimeField('Created at', auto_now_add=True)
+
+    class Meta:
+        unique_together = (('user', 'article'),)
+        verbose_name = 'Bookmark'
+        verbose_name_plural = 'Bookmarks'
+
+    def __str__(self):
+        return f'{self.user} bookmarked {self.article}'

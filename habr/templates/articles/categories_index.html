@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Категории — Habr Lite{% endblock %}
+{% block content %}
+<h1 class="mb-3">Категории</h1>
+<div class="d-flex flex-wrap gap-2">
+  {% for c in categories %}
+    <a class="btn btn-outline-primary" href="{% url 'articles:list' %}?category={{ c.slug }}">{{ c.name }}</a>
+  {% empty %}
+    <span>Категорий нет.</span>
+  {% endfor %}
+</div>
+{% endblock %}
+

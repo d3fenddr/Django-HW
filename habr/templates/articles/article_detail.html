@@ -6,6 +6,12 @@
     Автор: {{ article.author.username }} • Категория: {{ article.category }} • {{ article.created_at|date:'d.m.Y' }}
   </div>
   <h1 class="mb-3">{{ article.title }}</h1>
+  {% if request.user.is_authenticated and (request.user.is_staff or request.user == article.author) %}
+    <div class="mb-3">
+      <a class="btn btn-sm btn-outline-primary" href="{% url 'articles:update' article.slug %}">Редактировать</a>
+      <a class="btn btn-sm btn-outline-danger" href="{% url 'articles:delete' article.slug %}">Удалить</a>
+    </div>
+  {% endif %}
   {% if article.image %}
     <img src="{{ article.image.url }}" alt="{{ article.title }}" class="img-fluid mb-3">
   {% endif %}
@@ -30,6 +36,37 @@
 
   {% if not request.user.is_authenticated %}
     <span class="ms-2 text-muted small">Чтобы голосовать — <a href="/admin/login/">войдите</a>.</span>
+  {% endif %}
+  {% if request.user.is_authenticated %}
+  <form method="post" action="{% url 'articles:bookmark' article.slug %}">
+    {% csrf_token %}
+    <button class="btn btn-outline-secondary">★ В закладки</button>
+  </form>
+  {% endif %}
+</div>
+
+<hr class="my-4"/>
+
+<div class="d-flex align-items-center gap-3">
+  <div>
+    <strong>Рейтинг:</strong>
+    <span class="badge text-bg-info">{{ article.rating_avg|floatformat:1 }}/5</span>
+    <span class="text-muted small">({{ article.rating_count }})</span>
+  </div>
+  {% if request.user.is_authenticated %}
+    <form method="post" action="{% url 'articles:rate' article.slug %}" class="d-inline-flex align-items-center gap-2">
+      {% csrf_token %}
+      <select name="score" class="form-select form-select-sm" style="width:auto">
+        {% for i in "12345" %}
+          {% with n=forloop.counter %}
+            <option value="{{ n }}">{{ n }}</option>
+          {% endwith %}
+        {% endfor %}
+      </select>
+      <button class="btn btn-sm btn-primary">Оценить</button>
+    </form>
+  {% else %}
+    <span class="text-muted small">Чтобы оценить — <a href="/admin/login/">войдите</a>.</span>
   {% endif %}
 </div>
 {% endblock %}
